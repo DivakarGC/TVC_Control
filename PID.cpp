@@ -2,97 +2,69 @@
  * Thrust Vectoring PID Controller
  **/
 
-// Define the PID class
 class PID {
 public:
-    // Constructor to initialize variables to zero
-    PID() {
-        kp = 0;
-        ki = 0;
-        kd = 0;
-        err = 0;
-        sum_err = 0;
-        dif_err = 0;
-        lastInput = 0;
-        outmax = 400;
-        outmin = -400;
-    }
-
-    // Constructor to allow user to set kp, ki, and kd
-    PID(float kp_, float ki_, float kd_) {
-        kp = kp_;
-        ki = ki_;
-        kd = kd_;
-
-        err = 0;
-        sum_err = 0;
-        dif_err = 0;
-        lastInput = 0;
-        outmax = 400;
-        outmin = -400;
+    // Constructor to initialize variables
+    PID(float kp = 0.0f, float ki = 0.0f, float kd = 0.0f) 
+        : kp_(kp), ki_(ki), kd_(kd), last_input_(0), output_(0) {
+        set_output_limits(-400.0f, 400.0f);
     }
 
     // Function to update the PID controller
     float update_pid_std(float setpoint, float input, float dt) {
         // Calculate the error
-        err = setpoint - input;
+        float error = setpoint - input;
 
         // Calculate the integral error term
-        sum_err += err * ki * dt;
+        sum_err_ += error * ki_ * dt;
 
         // Calculate the derivative error term
-        dif_err = -kd / dt * (input - lastInput);
+        float derivative = kd_ / dt * (input - last_input_);
+        last_input_ = input;
 
         // Calculate the output
-        output = kp * err + sum_err + dif_err;
+        output_ = kp_ * error + sum_err_ + derivative;
 
         // Check the output against the output limits
-        if (output > outmax) {
-            sum_err = 0.0;
-            output = outmax;
+        if (output_ > outmax_) {
+            sum_err_ = (outmax_ - kp_ * error - derivative) / ki_;
+            output_ = outmax_;
         }
-        else if (output < outmin) {
-            sum_err = 0.0;
-            output = outmin;
+        else if (output_ < outmin_) {
+            sum_err_ = (outmin_ - kp_ * error - derivative) / ki_;
+            output_ = outmin_;
         }
-
-        // Store the current input as the last input
-        lastInput = input;
 
         // Return the output
-        return output;
+        return output_;
     }
 
     // Function to reset the PID controller
     void reset() {
-        sum_err = 0;
-        dif_err = 0;
-        lastInput = 0;
+        sum_err_ = 0.0f;
+        last_input_ = 0.0f;
     }
 
     // Function to set kp, ki, and kd
-    void set_Kpid(float KP, float KI, float KD) {
-        kp = KP;
-        ki = KI;
-        kd = KD;
+    void set_Kpid(float kp, float ki, float kd) {
+        kp_ = kp;
+        ki_ = ki;
+        kd_ = kd;
     }
 
     // Function to set the output limits to prevent integral windup
-    void set_windup_bounds(float min, float max) {
-        outmax = max;
-        outmin = min;
+    void set_output_limits(float min, float max) {
+        outmin_ = min;
+        outmax_ = max;
     }
 
 private:
-    float kp;        // Proportional gain
-    float ki;        // Integral gain
-    float kd;        // Derivative gain
-    float err;       // Current error
-    float sum_err;   // Sum of errors
-    float dif_err;   // Difference of errors
-    float lastInput; // Last input
-    float output;    // Output
-    float outmax;    // Maximum output limit
-    float outmin;    // Minimum output limit
+    float kp_;          // Proportional gain
+    float ki_;          // Integral gain
+    float kd_;          // Derivative gain
+    float last_input_;  // Last input
+    float output_;      // Output
+    float sum_err_ = 0; // Sum of errors, initialized to zero
+    float outmax_;      // Maximum output limit
+    float outmin_;      // Minimum output limit
 };
-
