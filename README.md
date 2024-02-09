@@ -37,8 +37,4 @@ float output = controller.update_pid_std(setpoint, input, dt);
 
 Contributions to this project are always welcome! Please feel free to submit a pull request with any optimizations or improvements you may have.
 
-## License
-
-This code has no licences whatsoever but we need to add in this space for I was asked to do so XD
-
 ## Thank you :)
